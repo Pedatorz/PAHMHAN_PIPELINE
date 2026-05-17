@@ -37,6 +37,7 @@ from __future__ import annotations
 import os
 import sys
 import logging
+import traceback
 import shutil
 import platform
 import time
@@ -165,8 +166,13 @@ class Projects(object):
         )
         self.dlg_setProject.move(pos)
 
-        intro = ProjectWidgets.IntroScreen(core=self.core, size=hint, pos=pos)
-        intro.exec_()
+        # Only show intro on first-ever launch (no projects have been used yet)
+        hasRecentProjects = bool(self.getRecentProjects(includeCurrent=True))
+        if not hasRecentProjects:
+            intro = ProjectWidgets.IntroScreen(core=self.core, size=hint, pos=pos)
+            intro.exec_()
+        else:
+            logger.warning("setProject called with existing projects — caller:\n%s" % "".join(traceback.format_stack(limit=6)))
 
         self.dlg_setProject.show()
         self.dlg_setProject.activateWindow()
@@ -1339,6 +1345,7 @@ class Projects(object):
         if curPrj:
             if self.changeProject(curPrj):
                 return True
+            logger.warning("ensureProject: changeProject failed for '%s'" % curPrj)
 
         self.setProject(openUi=openUi)
         hasPrj = getattr(self.core, "projectPath", None) and os.path.exists(

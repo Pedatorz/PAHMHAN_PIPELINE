@@ -191,7 +191,7 @@ class PrismTray:
                 os.path.join(
                     os.path.dirname(os.path.abspath(__file__)),
                     "UserInterfacesPrism",
-                    "p_tray.png",
+                    "PAHMHAN Logo.ico",
                 )
             )
 
@@ -720,7 +720,7 @@ def launch() -> None:
                 os.path.join(
                     os.path.dirname(os.path.abspath(__file__)),
                     "UserInterfacesPrism",
-                    "p_tray.png",
+                    "PAHMHAN Logo.ico",
                 )
             )
             qApp.setWindowIcon(wIcon)

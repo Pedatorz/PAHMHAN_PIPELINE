@@ -106,7 +106,7 @@ class CreateProject(QDialog, CreateProject_ui.Ui_dlg_createProject):
             name="onCreateProjectOpen",
             args=[self],
         )
-        path = os.path.join(self.core.prismRoot, "Scripts", "UserInterfacesPrism", "background.png")
+        path = os.path.join(self.core.prismRoot, "Scripts", "UserInterfacesPrism", "newproject.png")
         self.background = QPixmap(path)
 
     def paintEvent(self, event: QPaintEvent) -> None:
@@ -117,7 +117,7 @@ class CreateProject(QDialog, CreateProject_ui.Ui_dlg_createProject):
         """
         pixmap = self.core.media.scalePixmap(self.background, self.width(), self.height(), fitIntoBounds=False)
         painter = QPainter(self)
-        painter.setOpacity(0.3)
+        painter.setOpacity(0.85)
         painter.drawPixmap(0, 0, pixmap)
 
     @err_catcher(name=__name__)
@@ -129,11 +129,27 @@ class CreateProject(QDialog, CreateProject_ui.Ui_dlg_createProject):
         self.setupUi(self)
         self.core.parentWindow(self)
         self.sw_project.setStyleSheet("QStackedWidget { background-color: transparent;}")
+
+        # Push form fields down and make them slightly smaller
+        self.gridLayout.setContentsMargins(9, 140, 9, 9)
+        self.gridLayout.setSpacing(4)
+        smallFont = self.font()
+        smallFont.setPointSize(max(7, smallFont.pointSize() - 1))
+        self.w_start.setFont(smallFont)
+
+        label_color = "color: #FFD700;"
+        self.l_name.setStyleSheet(label_color)
+        self.l_path.setStyleSheet(label_color)
+        self.label_2.setStyleSheet(label_color)
+        self.l_preset.setStyleSheet(label_color)
+        self.cb_preset.setStyleSheet("QComboBox { color: #FFD700; border: 1px solid #FFD700; }")
+
         self.w_settings = QWidget()
         self.lo_settings = QHBoxLayout(self.w_settings)
         self.lo_settings.setContentsMargins(0, 0, 0, 0)
 
         self.l_settings = QLabel("Settings:")
+        self.l_settings.setStyleSheet("color: #FFD700;")
         self.cb_settings = QComboBox()
         self.cb_settings.addItems(["Default", "From Preset", "From Project"])
         self.cb_settings.currentIndexChanged.connect(self.onSettingsSourceChanged)
@@ -145,6 +161,7 @@ class CreateProject(QDialog, CreateProject_ui.Ui_dlg_createProject):
         self.w_start.layout().addWidget(self.w_settings, 2, 1)
 
         self.l_projectSettings = QLabel("Project Settings:")
+        self.l_projectSettings.setStyleSheet("color: #FFD700;")
         self.e_projectSettings = QLineEdit()
         self.e_projectSettings.setText(getattr(self.core, "projectPath", ""))
         self.b_projectSettings = QToolButton()
@@ -184,8 +201,8 @@ class CreateProject(QDialog, CreateProject_ui.Ui_dlg_createProject):
         )
         pmap = self.core.media.getPixmapFromPath(imgFile)
         if pmap:
-            self.l_preview.setMinimumSize(pmap.width(), pmap.height())
             self.l_preview.setPixmap(pmap)
+        self.l_preview.setMinimumSize(QSize(220, 124))
 
         path = os.path.join(
             self.core.prismRoot, "Scripts", "UserInterfacesPrism", "refresh.png"
@@ -1541,6 +1558,7 @@ class SetProjectClass(QDialog):
 
         self.lo_projects.addItem(sp_projectsB, self.lo_projects.rowCount(), 0)
         self.w_scrollParent.setHidden(not bool(projects))
+        self.w_newProjectV.setHidden(bool(projects))
         for widget in self.projectWidgets:
             if widget.data.get("configPath", None) == self.core.prismIni:
                 widget.select()

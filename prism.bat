@@ -1,2 +1,2 @@
-start "" "%~dp0/Python311/pythonw.exe" "%~dp0/Scripts/PrismCore.py"
+start "" "%~dp0/Python311/Prism.exe" "%~dp0/Scripts/PrismCore.py"
 ::PAUSE

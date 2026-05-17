@@ -72,6 +72,7 @@ class ProjectSettings(QDialog, ProjectSettings_ui.Ui_dlg_ProjectSettings):
         """
         QDialog.__init__(self)
         self.setupUi(self)
+        self.setStyleSheet("* { color: #FFD700; }")
 
         self.core = core
         self.core.parentWindow(self)
@@ -3938,7 +3939,7 @@ if __name__ == "__main__":
         os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             "UserInterfacesPrism",
-            "p_tray.png",
+            "PAHMHAN Logo.ico",
         )
     )
     qapp.setWindowIcon(appIcon)

@@ -1562,7 +1562,7 @@ def startUninstaller_Windows(silent: bool = False, removeCore: bool = True, remo
         os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             "UserInterfacesPrism",
-            "p_tray.png",
+            "PAHMHAN Logo.ico",
         )
     )
     qApp.setWindowIcon(wIcon)

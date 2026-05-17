@@ -705,7 +705,9 @@ class PrismCore:
             if self.splashScreen:
                 self.splashScreen.setStatus("loading project...")
 
-            self.changeProject(curPrj)
+            result = self.changeProject(curPrj)
+            if not result:
+                logger.warning("startup: changeProject failed for '%s', will show project selector" % curPrj)
 
         if (
             "silent" not in self.prismArgs
@@ -6487,7 +6489,7 @@ If this plugin is an official Prism plugin, please submit this error to the supp
             iconPath = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
                 "UserInterfacesPrism",
-                "p_tray.png",
+                "PAHMHAN Logo.ico",
             )
             with winreg.CreateKey(k, "DefaultIcon") as ik:
                 winreg.SetValueEx(ik, None, 0, winreg.REG_SZ, iconPath)
@@ -7035,10 +7037,15 @@ def create(app: str = "Standalone", prismArgs: Optional[List[str]] = None) -> 'P
         QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
         qapp = QApplication(sys.argv)
 
+    try:
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("PAHMHAN.PrismPipeline")
+    except Exception:
+        pass
     iconPath = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         "UserInterfacesPrism",
-        "p_tray.png",
+        "PAHMHAN Logo.ico",
     )
     appIcon = QIcon(iconPath)
     qapp.setWindowIcon(appIcon)
@@ -7088,7 +7095,7 @@ class SplashScreen(QWidget):
         self.l_header = QLabel()
         self.lo_main.addWidget(self.l_header)
         headerPath = os.path.join(
-            prismRoot, "Scripts", "UserInterfacesPrism", "prism_title.png"
+            prismRoot, "Scripts", "UserInterfacesPrism", "LODER.png"
         )
         pmap = QPixmap(headerPath)
         mode = Qt.KeepAspectRatio

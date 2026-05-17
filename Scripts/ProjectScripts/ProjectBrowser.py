@@ -172,22 +172,24 @@ class ProjectBrowser(QMainWindow, ProjectBrowser_ui.Ui_mw_ProjectBrowser):
 
     def showEvent(self, event: Any) -> None:
         """Handle show event.
-        
+
         Emits showing signal and calls onProjectBrowserShow callback.
-        
+
         Args:
             event: Show event.
         """
         self.showing.emit(self)
         self.core.callback(name="onProjectBrowserShow", args=[self])
+        self._updateBackground()
 
     def resizeEvent(self, event: Any) -> None:
         """Handle resize event.
-        
+
         Args:
             event: Resize event.
         """
         self.closeMenus()
+        self._updateBackground()
 
     def moveEvent(self, event: Any) -> None:
         """Handle move event.
@@ -421,7 +423,38 @@ class ProjectBrowser(QMainWindow, ProjectBrowser_ui.Ui_mw_ProjectBrowser):
         )
         self.addTab(self.core.tr("Media"), self.mediaBrowser)
 
-        self.tbw_project.setStyleSheet("QTabWidget::tab-bar {alignment: center;}")
+        self.tbw_project.setStyleSheet(
+            "QTabWidget::tab-bar {alignment: right;}"
+            "QTabWidget::pane {background: transparent;}"
+        )
+        self.tbw_project.tabBar().setStyleSheet(
+            "QTabBar { margin-right: 160px; }"
+            "QTabBar::tab { color: #FFD700; }"
+            "QTabBar::tab:selected { color: #FFD700; }"
+        )
+
+        self.b_back = QPushButton("◀  Back", self)
+        self.b_back.setFixedHeight(28)
+        self.b_back.setCursor(Qt.PointingHandCursor)
+        self.b_back.setStyleSheet(
+            "QPushButton {"
+            "  color: #FFD700;"
+            "  background-color: transparent;"
+            "  border: 2px solid #FFD700;"
+            "  border-radius: 6px;"
+            "  padding: 0 14px;"
+            "  font-weight: bold;"
+            "  font-size: 12px;"
+            "}"
+            "QPushButton:hover {"
+            "  background-color: rgba(255, 215, 0, 0.15);"
+            "}"
+            "QPushButton:pressed {"
+            "  background-color: rgba(255, 215, 0, 0.30);"
+            "}"
+        )
+        self.b_back.clicked.connect(self._onBackClicked)
+        self.tbw_project.setCornerWidget(self.b_back, Qt.TopLeftCorner)
 
         self.core.callback(name="projectBrowser_loadUI", args=[self])
         if brsData.get("selectedContext", None):
@@ -463,18 +496,93 @@ class ProjectBrowser(QMainWindow, ProjectBrowser_ui.Ui_mw_ProjectBrowser):
 
         self.updateTabSize(self.tbw_project.currentIndex())
 
-        self.scrollArea.setStyleSheet("QScrollArea { border-width: 0px;}")
+        self.scrollArea.setStyleSheet(
+            "QScrollArea { border-width: 0px; background: transparent; }"
+        )
         self.lo_scrollArea.setContentsMargins(0, 9, 0, 0)
+
+        self.setStyleSheet(
+            "QLabel { color: #FFD700; }"
+            "QGroupBox { color: #FFD700; }"
+            "QGroupBox::title { color: #FFD700; }"
+            "QMenuBar { color: #FFD700; }"
+            "QMenuBar::item { color: #FFD700; }"
+            "QMenu { color: #FFD700; }"
+            "QMenu::item { color: #FFD700; }"
+            "QListWidget { color: #FFD700; }"
+            "QListView { color: #FFD700; }"
+            "QTreeWidget { color: #FFD700; }"
+            "QTreeView { color: #FFD700; }"
+            "QTableWidget { color: #FFD700; }"
+            "QHeaderView::section { color: #FFD700; }"
+            "QToolButton { color: #FFD700; }"
+            "QPushButton { color: #FFD700; }"
+            "QLineEdit { color: #FFD700; }"
+            "QComboBox { color: #FFD700; }"
+            "QCheckBox { color: #FFD700; }"
+            "QRadioButton { color: #FFD700; }"
+            "QTabBar::tab { color: #FFD700; }"
+        )
+
+        self._setupBackground()
         self.refreshUser()
 
-    #         ssheet = """
-    # QWidget#header {
-    #     background-image: url("D:/test.png");
-    #     background-repeat: no-repeat;
-    # }
-    # """
-    #         self.centralwidget.setObjectName("header")
-    #         self.centralwidget.setStyleSheet(ssheet)
+    @err_catcher(name=__name__)
+    def _onBackClicked(self) -> None:
+        """Close this browser and show the New Project / Load Project selection page."""
+        self.close()
+        self.core.projects.setProject(startup=True)
+        dlg = getattr(self.core.projects, "dlg_setProject", None)
+        if dlg:
+            ui = dlg.projectsUi
+            ui.w_scrollParent.setHidden(True)
+            ui.w_newProjectV.setHidden(False)
+            pmap = ui.l_header.pixmap()
+            if pmap and not pmap.isNull():
+                dlg.resize(pmap.width(), pmap.height())
+                screen = QApplication.primaryScreen().availableGeometry()
+                dlg.move(
+                    screen.center().x() - dlg.width() // 2,
+                    screen.center().y() - dlg.height() // 2,
+                )
+
+    @err_catcher(name=__name__)
+    def _setupBackground(self) -> None:
+        """Stretch HOME.png to fill the entire visible area of the browser."""
+        bgPath = os.path.join(
+            self.core.prismRoot, "Scripts", "UserInterfacesPrism", "HOME.png"
+        )
+        if not os.path.exists(bgPath):
+            return
+
+        self._bgPixmap = QPixmap(bgPath)
+        if self._bgPixmap.isNull():
+            return
+
+        vp = self.scrollArea.viewport()
+        vp.setAutoFillBackground(False)
+        self.scrollAreaWidgetContents.setAutoFillBackground(False)
+        self.w_header.setAutoFillBackground(False)
+
+        self._bgLabel = QLabel(vp)
+        self._bgLabel.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self._bgLabel.lower()
+        self._updateBackground()
+
+    def _updateBackground(self) -> None:
+        """Stretch background to fill the scroll area viewport."""
+        if not getattr(self, "_bgLabel", None) or not getattr(self, "_bgPixmap", None):
+            return
+        vp = self.scrollArea.viewport()
+        w = vp.width()
+        h = vp.height()
+        if w <= 0 or h <= 0:
+            return
+        self._bgLabel.setPixmap(
+            self._bgPixmap.scaled(w, h, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+        )
+        self._bgLabel.setGeometry(0, 0, w, h)
+        self._bgLabel.lower()
 
     @err_catcher(name=__name__)
     def refreshRecentMenu(self) -> None:
